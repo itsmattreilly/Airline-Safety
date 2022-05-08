@@ -1,0 +1,110 @@
+---
+title: "Airline Safety"
+author: "Matt Reilly"
+date: "5/7/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(reactable)
+library(reactablefmtr)
+library(stringr)
+```
+
+```{r}
+setwd('/Users/matthewreilly/OneDrive/Practice R/Airline Safety')
+
+data <- read.csv('airline_safety.csv')
+```
+
+```{r}
+fmt_data <- data %>%
+  mutate(Incidents_85_to_99 = ceiling((incidents_85_99/avail_seat_km_per_week) * 1000000000),
+         Fatal_Incidents_85_to_99 = ceiling((fatal_accidents_85_99/avail_seat_km_per_week) * 1000000000),
+         Fatalities_85_to_99 = ceiling((fatalities_85_99/avail_seat_km_per_week) * 1000000000),
+         Incidents_00_to_14 = ceiling((incidents_00_14/avail_seat_km_per_week) * 1000000000),
+         Fatal_Incidents_00_to_14 = ceiling((fatal_accidents_00_14/avail_seat_km_per_week) * 1000000000),
+         Fatalities_00_to_14 = ceiling((fatalities_00_14/avail_seat_km_per_week) * 1000000000),
+         Airline_mod = str_replace_all(airline, "\\*", ""),
+         Airline_mod = gsub("/", ":", Airline_mod)) %>%
+  mutate(Image = paste0('https://raw.githubusercontent.com/itsmattreilly/Airline-Safety/main/Logos/', gsub(" ", "", Airline_mod), ".png")) %>%
+    select(Image, airline, avail_seat_km_per_week, Incidents_85_to_99, Fatal_Incidents_85_to_99, Fatalities_85_to_99,
+         Incidents_00_to_14, Fatal_Incidents_00_to_14, Fatalities_00_to_14) 
+
+```
+
+
+```{r}
+orpal<-c('#0e923c','#FFEE5B','#F58687', '#F54A4A')
+sizepal <- c('#74ccf4', '#5abcd8', '#1ca3ec', '#2389da', '#0f5e9c')
+
+reactable(fmt_data,
+          theme = reactableTheme(
+          style = list(fontFamily="Brandon Grotesque, Gill Sans")),
+          columns = list(
+            airline = colDef(
+              name = "Airline",
+              minWidth = 180),
+            Image = colDef(name="",
+                cell = embed_img()),
+            avail_seat_km_per_week = colDef(
+              name = "Relative Airline Size",
+              align = "center",
+              minWidth = 180,
+              cell = bubble_grid(fmt_data,
+                                 colors = sizepal,
+                                 show_text = FALSE)),
+            Incidents_85_to_99 = colDef(name = "Incidents",
+                                        minWidth = 100,
+                                        cell = color_tiles(fmt_data,
+                                                           colors = orpal, 
+                                                           opacity = 0.8), align = "center"),
+            Fatal_Incidents_85_to_99 = colDef(name = "Fatal Accidents",
+                                        minWidth = 100,
+                                        cell = color_tiles(fmt_data,
+                                                           colors = orpal, 
+                                                           opacity = 0.8), align = "center"),
+            Fatalities_85_to_99 = colDef(name = "Fatalities",
+                                        minWidth = 100,
+                                        cell = color_tiles(fmt_data,
+                                                           colors = orpal, 
+                                                           opacity = 0.8), align = "center"),
+            Incidents_00_to_14 = colDef(name = "Incidents",
+                                        minWidth = 100,
+                                        style = list(borderLeft = "1px solid #eee"),
+                                        headerStyle = list(borderLeft = "1px solid #eee"),
+                                        cell = color_tiles(fmt_data,
+                                                           colors = orpal, 
+                                                           opacity = 0.8), align = "center"),
+            Fatal_Incidents_00_to_14 = colDef(name = "Fatal Accidents",
+                                        minWidth = 100,
+                                        cell = color_tiles(fmt_data,
+                                                           colors = orpal, 
+                                                           opacity = 0.8), align = "center"),
+            Fatalities_00_to_14 = colDef(name = "Fatalities",
+                                        minWidth = 100,
+                                        cell = color_tiles(fmt_data,
+                                                           colors = orpal, 
+                                                           opacity = 0.8), align = "center")),
+          columnGroups = list(
+            colGroup("1985 - 1999", columns = c("Incidents_85_to_99", "Fatal_Incidents_85_to_99",
+                                                'Fatalities_85_to_99')),
+            colGroup("1999 - 2014", columns = c("Incidents_00_to_14", "Fatal_Incidents_00_to_14",
+                                                "Fatalities_00_to_14"))
+          ),
+          fullWidth = FALSE) %>%
+  add_title("Airline Safety, 1985 - 2014") %>%
+  add_subtitle("* Includes Airlines Subsidaries", 
+               font_style = "italic", 
+               font_weight = 'normal',
+               font_size = 18) %>%
+    add_source("FiveThirtyEight: https://fivethirtyeight.com/features/should-travelers-avoid-flying-airlines-that-have-had-crashes-in-the-past/", font_style = "italic", font_color = "grey")
+
+```
+
+
