@@ -14,11 +14,10 @@ library(tidyverse)
 library(reactable)
 library(reactablefmtr)
 library(stringr)
+library(htmlwidgets)
 ```
 
 ```{r}
-setwd('/Users/matthewreilly/OneDrive/Practice R/Airline Safety')
-
 data <- read.csv('airline_safety.csv')
 ```
 
@@ -43,7 +42,7 @@ fmt_data <- data %>%
 orpal<-c('#0e923c','#FFEE5B','#F58687', '#F54A4A')
 sizepal <- c('#74ccf4', '#5abcd8', '#1ca3ec', '#2389da', '#0f5e9c')
 
-reactable(fmt_data,
+airline_table <- reactable(fmt_data,
           theme = reactableTheme(
           style = list(fontFamily="Brandon Grotesque, Gill Sans")),
           columns = list(
@@ -99,12 +98,17 @@ reactable(fmt_data,
           ),
           fullWidth = FALSE) %>%
   add_title("Airline Safety, 1985 - 2014") %>%
-  add_subtitle("* Includes Airlines Subsidaries", 
+  add_subtitle("Per trillion available seat kilometers", 
                font_style = "italic", 
                font_weight = 'normal',
                font_size = 18) %>%
-    add_source("FiveThirtyEight: https://fivethirtyeight.com/features/should-travelers-avoid-flying-airlines-that-have-had-crashes-in-the-past/", font_style = "italic", font_color = "grey")
+    add_source("FiveThirtyEight:Airline-Safety", font_style = "italic", font_color = "grey") %>%
+  add_source("* Includes Regional Subsidaries", font_style = "italic", font_color = "grey")
 
 ```
 
+```{r}
+
+saveWidget(airline_table, "airline_table.html")
+```
 
